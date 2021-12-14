@@ -34,9 +34,9 @@ export default class App extends Component{
           fechaInicioEstimada : null,
           fechaFinalizacionEstimada: null,
           idLegajo : null
+        },
+        selectedProyecto:{
         }
-
-
     };
     this.items = [
       {
@@ -47,16 +47,17 @@ export default class App extends Component{
       {
         label : 'Editar',
         icon : 'pi pi-fw pi-pencil',
-        command : ()=> {alert('Editar  Proyecto')}
+        command : ()=> {this.showEditDialog()}
       },
       {
         label : 'Eliminar',
         icon : 'pi pi-fw pi-trash',
-        command : ()=> {alert('Borrar  Proyecto')}
+        command : ()=> {this.delete()}
       }
     ];
     this.proyectoService=new ProyectoService();
     this.save = this.save.bind(this);
+    this.delete = this.delete.bind(this);
 
     this.footer = (
       <div>
@@ -67,7 +68,7 @@ export default class App extends Component{
   }
 
   showSuccess() {
-    this.toast.show({severity:'success', summary: 'Alta de Proyecto', detail:'El proyecto fue creado correcamente', life: 3000});
+    this.toast.show({severity:'success', summary: 'Atención!', detail:'El proyecto fue actualizado correcamente', life: 3000});
 }
 //ciclo de vida
 componentDidMount(){
@@ -87,6 +88,18 @@ save() {
   })
 }
 
+delete(){
+  if(window.confirm("¿Desea elminar el registro?")){
+    this.proyectoService.delete(this.state.selectedProyecto.idProyecto).then(data => {
+      //alert('el registro fue borrado');
+      this.showSuccess();
+      this.proyectoService.getAll().then(data => this.setState({proyectos: data}));
+
+    });
+  }
+}
+
+
 render(){
   return (
     <div style={{width:'80%', margin: '0 auto',marginTop: '20px' }} >
@@ -94,7 +107,7 @@ render(){
     <br></br>
     <Panel header="PSA - Proyectos" >
 
-    <DataTable value={this.state.proyectos}>
+    <DataTable value={this.state.proyectos} selectionMode="single" selection={this.state.selectedProyecto} onSelectionChange={e => this.setState({ selectedProyecto: e.value })}>
       <Column field="idProyecto" header="Id Proyecto"></Column>
       <Column field="nombre" header="Nombre"></Column>
       <Column field="descripcion" header="Descripcion"></Column>
@@ -157,8 +170,36 @@ render(){
                         return { proyecto };
                     })}
                   } />
-             <label htmlFor="fechaFinalizacionReal">Fecha Finalizacion Real</label>
+             <label htmlFor="fechaFinalizacionReal">Fecha Finalización Real</label>
+      </span>   
+      <br/>           
+      <span className="p-float-label">  
+          <InputText value={this.state.proyecto.fechaInicioEstimada} style={{width : '100%'}} id="fechaInicioEstimada" onChange={(e) => {
+                    let val = e.target.value;
+                    this.setState(prevState => {
+                        let proyecto = Object.assign({}, prevState.proyecto);
+                        proyecto.fechaInicioEstimada = val;
+
+                        return { proyecto };
+                    })}
+                  } />
+             <label htmlFor="fechaInicioEstimada">Fecha Inicio Estimada</label>
       </span>    
+      <br/>           
+      <span className="p-float-label">  
+          <InputText value={this.state.proyecto.fechaFinalizacionEstimada} style={{width : '100%'}} id="fechaFinalizacionEstimada" onChange={(e) => {
+                    let val = e.target.value;
+                    this.setState(prevState => {
+                        let proyecto = Object.assign({}, prevState.proyecto);
+                        proyecto.fechaFinalizacionEstimada = val;
+
+                        return { proyecto };
+                    })}
+                  } />
+             <label htmlFor="fechaFinalizacionEstimada">Fecha Finalización Estimada</label>
+      </span>    
+           
+           
       </form>
   </Dialog>
   <Toast ref={(el) => this.toast = el} />
@@ -180,6 +221,23 @@ render(){
         }
       });
       //document.getElementById('proyecto-form').reset();
+    }
+
+    showEditDialog(){
+      this.setState({
+        visible : true,
+        proyecto : {
+          idProyecto : this.state.selectedProyecto.idProyecto,
+          nombre      : this.state.selectedProyecto.nombre,
+          descripcion : this.state.selectedProyecto.descripcion,
+          fechaInicioReal : this.state.selectedProyecto.fechaInicioReal,
+          fechaFinalizacionReal : this.state.selectedProyecto.fechaFinalizacionReal,
+          fechaInicioEstimada : this.state.selectedProyecto.fechaInicioEstimada,
+          fechaFinalizacionEstimada: this.state.selectedProyecto.fechaFinalizacionEstimada,
+          idLegajo : this.state.selectedProyecto.idLegajo
+        }
+      });
+
     }
 
 }
