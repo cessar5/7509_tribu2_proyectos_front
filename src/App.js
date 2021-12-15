@@ -36,7 +36,8 @@ export default class App extends Component{
           idLegajo : null
         },
         selectedProyecto:{
-        }
+        },
+      globalFilter: null
     };
     this.items = [
       {
@@ -58,17 +59,19 @@ export default class App extends Component{
     this.proyectoService=new ProyectoService();
     this.save = this.save.bind(this);
     this.delete = this.delete.bind(this);
+    this.hideDialog = this.hideDialog.bind(this);
 
     this.footer = (
       <div>
         <Button label="Guardar" icon="pi pi-check" onClick={this.save} />
+        <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={this.hideDialog} />
       </div>
 
     );
   }
 
   showSuccess() {
-    this.toast.show({severity:'success', summary: 'Atención!', detail:'El proyecto fue actualizado correcamente', life: 3000});
+    this.toast.show({severity:'success', summary: 'Atención!', detail:'El proyecto fue actualizado correctamente', life: 3000});
 }
 //ciclo de vida
 componentDidMount(){
@@ -89,7 +92,7 @@ save() {
 }
 
 delete(){
-  if(window.confirm("¿Desea elminar el registro?")){
+  if(window.confirm("¿Desea eliminar el registro?")){
     this.proyectoService.delete(this.state.selectedProyecto.idProyecto).then(data => {
       //alert('el registro fue borrado');
       this.showSuccess();
@@ -99,15 +102,31 @@ delete(){
   }
 }
 
+hideDialog() {
+  this.setState({
+    visible: false,
+  });
+}
+
 
 render(){
+  const header = (
+    <div className="table-header">
+        <span className="p-input-icon-left">
+            <i className="pi pi-search" />
+            <InputText type="search" onInput={(e) => this.setState({ globalFilter: e.target.value })} placeholder="Buscar..." />
+        </span>
+    </div>
+  );
+
+
   return (
     <div style={{width:'80%', margin: '0 auto',marginTop: '20px' }} >
     <Menubar model={this.items}></Menubar>
     <br></br>
     <Panel header="PSA - Proyectos" >
-
-    <DataTable value={this.state.proyectos} selectionMode="single" selection={this.state.selectedProyecto} onSelectionChange={e => this.setState({ selectedProyecto: e.value })}>
+    <DataTable value={this.state.proyectos} selectionMode="single" selection={this.state.selectedProyecto} onSelectionChange={e => this.setState({ selectedProyecto: e.value })}
+      globalFilter={this.state.globalFilter} header={header} responsiveLayout="scroll">
       <Column field="idProyecto" header="Id Proyecto"></Column>
       <Column field="nombre" header="Nombre"></Column>
       <Column field="descripcion" header="Descripcion"></Column>
@@ -119,7 +138,7 @@ render(){
 
     </DataTable>
     </Panel>
-    <Dialog header="Crear Proyecto" visible={this.state.visible} style={{ width: '400px' }} footer={this.footer} modal={true} onHide={() => this.setState({visible:false})}>
+    <Dialog header="Detalles del proyecto" visible={this.state.visible} style={{ width: '400px' }} footer={this.footer} modal={true} onHide={() => this.setState({visible:false})}>
     <form id="proyecto-form"> 
     <span className="p-float-label">
     <InputText value={this.state.proyecto.nombre} style={{width : '100%'}} id="nombre" onChange={(e) => {
@@ -135,7 +154,7 @@ render(){
     </span>   
     <br/>
     <span className="p-float-label">
-    <InputText value={this.state.proyecto.descripcion} style={{width : '100%'}} id="descripcion" onChange={(e) => {
+    <InputText value={this.state.proyecto.descripcion} style={{width : '100%', height: '100px'}} id="descripcion" onChange={(e) => {
                     let val = e.target.value;
                     this.setState(prevState => {
                         let proyecto = Object.assign({}, prevState.proyecto);
